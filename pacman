@@ -1,0 +1,110 @@
+import pygame
+import random
+
+# Initialize Pygame
+pygame.init()
+
+# Screen Dimensions
+WIDTH, HEIGHT = 600, 600
+GRID_SIZE = 20
+
+# Colors
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+YELLOW = (255, 255, 0)
+BLUE = (0, 0, 255)
+
+# Initialize Screen
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Simple Pac-Man Game")
+
+# Clock
+clock = pygame.time.Clock()
+FPS = 10
+
+# Create the grid
+grid_width = WIDTH // GRID_SIZE
+grid_height = HEIGHT // GRID_SIZE
+
+# Pac-Man variables
+pacman_x, pacman_y = WIDTH // 2, HEIGHT // 2
+pacman_speed = GRID_SIZE
+direction = None
+
+# Dots
+dots = [(random.randint(0, grid_width - 1) * GRID_SIZE, random.randint(0, grid_height - 1) * GRID_SIZE) for _ in range(20)]
+
+# Score
+score = 0
+font = pygame.font.SysFont("comicsans", 30)
+
+# Draw grid
+def draw_grid():
+    for x in range(0, WIDTH, GRID_SIZE):
+        pygame.draw.line(screen, BLUE, (x, 0), (x, HEIGHT))
+    for y in range(0, HEIGHT, GRID_SIZE):
+        pygame.draw.line(screen, BLUE, (0, y), (WIDTH, y))
+
+# Draw Pac-Man
+def draw_pacman(x, y):
+    pygame.draw.circle(screen, YELLOW, (x + GRID_SIZE // 2, y + GRID_SIZE // 2), GRID_SIZE // 2)
+
+# Draw Dots
+def draw_dots(dots):
+    for dot in dots:
+        pygame.draw.circle(screen, WHITE, (dot[0] + GRID_SIZE // 2, dot[1] + GRID_SIZE // 2), 5)
+
+# Display Score
+def display_score(score):
+    text = font.render(f"Score: {score}", True, WHITE)
+    screen.blit(text, (10, 10))
+
+# Main Game Loop
+running = True
+while running:
+    screen.fill(BLACK)
+    draw_grid()
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP:
+                direction = "UP"
+            elif event.key == pygame.K_DOWN:
+                direction = "DOWN"
+            elif event.key == pygame.K_LEFT:
+                direction = "LEFT"
+            elif event.key == pygame.K_RIGHT:
+                direction = "RIGHT"
+
+    # Move Pac-Man
+    if direction == "UP":
+        pacman_y -= pacman_speed
+    elif direction == "DOWN":
+        pacman_y += pacman_speed
+    elif direction == "LEFT":
+        pacman_x -= pacman_speed
+    elif direction == "RIGHT":
+        pacman_x += pacman_speed
+
+    # Wrap-around movement (Pac-Man exits one side, appears on the other)
+    pacman_x %= WIDTH
+    pacman_y %= HEIGHT
+
+    # Check if Pac-Man eats a dot
+    for dot in dots[:]:
+        if (pacman_x, pacman_y) == dot:
+            dots.remove(dot)
+            score += 1
+
+    # Draw everything
+    draw_pacman(pacman_x, pacman_y)
+    draw_dots(dots)
+    display_score(score)
+
+    # Refresh screen
+    pygame.display.flip()
+    clock.tick(FPS)
+
+pygame.quit()
